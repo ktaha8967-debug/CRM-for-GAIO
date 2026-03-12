@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/auth/google/callback`
+    `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:4444'}/api/auth/google/callback`
   );
 
   try {
@@ -29,9 +29,9 @@ export async function GET(req: Request) {
       path: '/'
     });
 
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/mailbox?status=success`);
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:4444'}/mailbox?status=success`);
   } catch (error) {
     console.error('Google Auth Error:', error);
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/mailbox?status=error`);
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:4444'}/mailbox?status=error`);
   }
 }
