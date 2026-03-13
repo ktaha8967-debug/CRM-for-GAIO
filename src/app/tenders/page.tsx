@@ -31,6 +31,17 @@ export default function TendersPage() {
     return initialTenders;
   });
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({ title: "", type: "National", region: "", budget: "", deadline: "", description: "" });
+  const [isManageOpen, setIsManageOpen] = useState(false);
+  const [manageData, setManageData] = useState<Tender | null>(null);
+
+  // Define handleOpenManage early
+  function handleOpenManage(tender: Tender) {
+    setManageData(tender);
+    setIsManageOpen(true);
+  }
+
   const saveToStore = (data: Tender[]) => {
     setTenders(data);
     localStorage.setItem('gaio_tenders', JSON.stringify(data));
@@ -68,17 +79,6 @@ export default function TendersPage() {
       
       alert(`AUTOMATION TRIGGERED: An Organiser and Event have been automatically provisioned for "${tender.title}".`);
     }
-  };
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ title: "", type: "National", region: "", budget: "", deadline: "", description: "" });
-
-  const [isManageOpen, setIsManageOpen] = useState(false);
-  const [manageData, setManageData] = useState<Tender | null>(null);
-
-  const handleOpenManage = (tender: Tender) => {
-    setManageData(tender);
-    setIsManageOpen(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
