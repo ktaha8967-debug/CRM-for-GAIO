@@ -3,16 +3,27 @@
 import { useState } from "react";
 import { Plus, Search, Filter, X } from "lucide-react";
 
-const initialTenders = [
-  { id: "TND-2026-EU", title: "European Regional Finals 2026", type: "Regional", region: "Europe", budget: "$150k - $250k", deadline: "Mar 15, 2026", status: "Under Review" },
-  { id: "TND-2026-UK", title: "UK National Competition", type: "National", region: "United Kingdom", budget: "$50k - $80k", deadline: "Mar 10, 2026", status: "Awarded" },
-  { id: "TND-2026-JP", title: "Japan National Event", type: "National", region: "Japan", budget: "$80k - $120k", deadline: "Mar 22, 2026", status: "Open" },
-  { id: "TND-2027-GL", title: "GAIO Global Finals 2027", type: "Global", region: "Global", budget: "$2M - $3M", deadline: "Apr 01, 2026", status: "Open" },
-  { id: "TND-2026-NG", title: "Nigeria National Qualifiers", type: "National", region: "Nigeria", budget: "$20k - $40k", deadline: "Mar 28, 2026", status: "Open" },
+interface Tender {
+  id: string;
+  title: string;
+  type: string;
+  region: string;
+  budget: string;
+  deadline: string;
+  status: string;
+  description: string;
+}
+
+const initialTenders: Tender[] = [
+  { id: "TND-2026-EU", title: "European Regional Finals 2026", type: "Regional", region: "Europe", budget: "$150k - $250k", deadline: "Mar 15, 2026", status: "Under Review", description: "Regional finals for the European sector, focusing on AI ethics and innovation." },
+  { id: "TND-2026-UK", title: "UK National Competition", type: "National", region: "United Kingdom", budget: "$50k - $80k", deadline: "Mar 10, 2026", status: "Awarded", description: "National level competition for UK based students and professionals." },
+  { id: "TND-2026-JP", title: "Japan National Event", type: "National", region: "Japan", budget: "$80k - $120k", deadline: "Mar 22, 2026", status: "Open", description: "Focused on robotics and automation in the Japanese market." },
+  { id: "TND-2027-GL", title: "GAIO Global Finals 2027", type: "Global", region: "Global", budget: "$2M - $3M", deadline: "Apr 01, 2026", status: "Open", description: "The flagship global event for GAIO 2027." },
+  { id: "TND-2026-NG", title: "Nigeria National Qualifiers", type: "National", region: "Nigeria", budget: "$20k - $40k", deadline: "Mar 28, 2026", status: "Open", description: "Qualifying rounds for the African regional championships." },
 ];
 
 export default function TendersPage() {
-  const [tenders, setTenders] = useState(() => {
+  const [tenders, setTenders] = useState<Tender[]>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('gaio_tenders');
       if (saved) return JSON.parse(saved);
@@ -20,12 +31,12 @@ export default function TendersPage() {
     return initialTenders;
   });
 
-  const saveToStore = (data: any) => {
+  const saveToStore = (data: Tender[]) => {
     setTenders(data);
     localStorage.setItem('gaio_tenders', JSON.stringify(data));
   };
 
-  const runAutomation = (tender: any) => {
+  const runAutomation = (tender: Tender) => {
     if (tender.status === 'Awarded') {
       // 1. Create Organiser automatically
       const organisersSaved = localStorage.getItem('gaio_organisers');
@@ -60,33 +71,40 @@ export default function TendersPage() {
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ title: "", type: "National", region: "", budget: "", deadline: "" });
+  const [formData, setFormData] = useState({ title: "", type: "National", region: "", budget: "", deadline: "", description: "" });
 
   const [isManageOpen, setIsManageOpen] = useState(false);
-  const [manageData, setManageData] = useState<any>(null);
+  const [manageData, setManageData] = useState<Tender | null>(null);
+
+  const handleOpenManage = (tender: Tender) => {
+    setManageData(tender);
+    setIsManageOpen(true);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title) return;
 
-    const newTender = {
+    const newTender: Tender = {
       id: `TND-${new Date().getFullYear()}-${formData.region.substring(0,2).toUpperCase()}`,
       title: formData.title,
       type: formData.type,
       region: formData.region,
       budget: formData.budget || "TBD",
       deadline: formData.deadline || "TBD",
-      status: "Open"
+      status: "Open",
+      description: formData.description
     };
 
     saveToStore([newTender, ...tenders]);
-    setFormData({ title: "", type: "National", region: "", budget: "", deadline: "" });
+    setFormData({ title: "", type: "National", region: "", budget: "", deadline: "", description: "" });
     setIsModalOpen(false);
   };
 
   const handleUpdate = (e: React.FormEvent) => {
     e.preventDefault();
-    const updated = tenders.map((t: any) => t.id === manageData.id ? manageData : t);
+    if (!manageData) return;
+    const updated = tenders.map((t) => t.id === manageData.id ? manageData : t);
     saveToStore(updated);
     runAutomation(manageData);
     setIsManageOpen(false);
@@ -94,7 +112,7 @@ export default function TendersPage() {
 
   const handleDelete = (id: string) => {
     if (confirm("Are you sure you want to delete this tender?")) {
-      saveToStore(tenders.filter((t: any) => t.id !== id));
+      saveToStore(tenders.filter((t) => t.id !== id));
       setIsManageOpen(false);
     }
   };
@@ -141,7 +159,7 @@ export default function TendersPage() {
                   <td className="whitespace-nowrap py-4 pl-4 pr-3 sm:pl-6">
                     <div className="flex flex-col">
                       <span className="text-sm font-medium text-gray-900 dark:text-white">{tender.title}</span>
-                      <span className="text-sm text-gray-500 dark:text-zinc-400">{tender.id}</span>
+                      <span className="text-sm text-gray-500 dark:text-zinc-400 line-clamp-1 max-w-xs">{tender.description}</span>
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-3 py-4">
@@ -189,6 +207,10 @@ export default function TendersPage() {
                   <input type="text" required value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="block w-full rounded-lg border-0 py-2.5 px-3 text-gray-900 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-blue-600 dark:bg-[#1a1a1a] dark:text-white dark:ring-zinc-800" />
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Description</label>
+                  <textarea rows={3} value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="block w-full rounded-lg border-0 py-2.5 px-3 text-gray-900 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-blue-600 dark:bg-[#1a1a1a] dark:text-white dark:ring-zinc-800" />
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Event Type</label>
                   <select value={formData.type} onChange={(e) => setFormData({...formData, type: e.target.value})} className="block w-full rounded-lg border-0 py-2.5 px-3 text-gray-900 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-blue-600 dark:bg-[#1a1a1a] dark:text-white dark:ring-zinc-800">
                     <option value="National">National</option>
@@ -232,6 +254,10 @@ export default function TendersPage() {
               <div>
                 <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Title</label>
                 <input type="text" value={manageData.title} onChange={(e) => setManageData({...manageData, title: e.target.value})} className="block w-full rounded-lg border-0 py-2.5 px-3 text-gray-900 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-blue-600 dark:bg-[#1a1a1a] dark:text-white dark:ring-zinc-800" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Description</label>
+                <textarea rows={3} value={manageData.description} onChange={(e) => setManageData({...manageData, description: e.target.value})} className="block w-full rounded-lg border-0 py-2.5 px-3 text-gray-900 ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-blue-600 dark:bg-[#1a1a1a] dark:text-white dark:ring-zinc-800" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>

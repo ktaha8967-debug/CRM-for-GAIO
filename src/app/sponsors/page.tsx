@@ -3,7 +3,16 @@
 import { useState } from "react";
 import { Building2, Plus, X } from "lucide-react";
 
-const initialSponsors = [
+interface Sponsor {
+  id: string;
+  name: string;
+  tier: string;
+  industry: string;
+  funding: string;
+  status: string;
+}
+
+const initialSponsors: Sponsor[] = [
   { id: "S-1", name: "Global AI Tech", tier: "Global Strategic Partner", industry: "Technology", funding: "$500,000", status: "Active" },
   { id: "S-2", name: "Future Finance", tier: "Innovation Partner", industry: "Finance", funding: "$250,000", status: "Active" },
   { id: "S-3", name: "Cloud Systems Inc", tier: "Technology Partner", industry: "Cloud Computing", funding: "$150,000", status: "Pending" },
@@ -11,7 +20,7 @@ const initialSponsors = [
 ];
 
 export default function SponsorsPage() {
-  const [sponsors, setSponsors] = useState(() => {
+  const [sponsors, setSponsors] = useState<Sponsor[]>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('gaio_sponsors');
       if (saved) return JSON.parse(saved);
@@ -19,7 +28,7 @@ export default function SponsorsPage() {
     return initialSponsors;
   });
 
-  const saveToStore = (data: any) => {
+  const saveToStore = (data: Sponsor[]) => {
     setSponsors(data);
     localStorage.setItem('gaio_sponsors', JSON.stringify(data));
   };
@@ -28,13 +37,18 @@ export default function SponsorsPage() {
   const [formData, setFormData] = useState({ name: "", tier: "Technology Partner", industry: "", funding: "" });
 
   const [isManageOpen, setIsManageOpen] = useState(false);
-  const [manageData, setManageData] = useState<any>(null);
+  const [manageData, setManageData] = useState<Sponsor | null>(null);
+
+  const handleOpenManage = (sponsor: Sponsor) => {
+    setManageData(sponsor);
+    setIsManageOpen(true);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name) return;
 
-    const newSponsor = {
+    const newSponsor: Sponsor = {
       id: `S-${Date.now()}`,
       name: formData.name,
       tier: formData.tier,
@@ -50,13 +64,14 @@ export default function SponsorsPage() {
 
   const handleUpdate = (e: React.FormEvent) => {
     e.preventDefault();
-    saveToStore(sponsors.map((s: any) => s.id === manageData.id ? manageData : s));
+    if (!manageData) return;
+    saveToStore(sponsors.map((s) => s.id === manageData.id ? manageData : s));
     setIsManageOpen(false);
   };
 
   const handleDelete = (id: string) => {
     if (confirm("Are you sure you want to remove this partner?")) {
-      saveToStore(sponsors.filter((s: any) => s.id !== id));
+      saveToStore(sponsors.filter((s) => s.id !== id));
       setIsManageOpen(false);
     }
   };
